@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ suburb }} – Houzee</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/game.css" />
+  <script src="https://maps.googleapis.com/maps/api/js?key={{ google_api_key }}&libraries=places&callback=initAutocomplete" async defer></script>
+</head>
+<body>
+  <div class="container">
+    <!-- ✅ Back button -->
+    <a href="/" style="display: inline-block; margin-bottom: 1rem; color: #0a84ff; text-decoration: none;">← Back to Suburbs</a>
+    
+    <!-- ✅ Twin logos at top -->
+    <div class="logo-section">
+      <img src="/assets/houzee.png" alt="Houzee Logo" class="top-logo" />
+      <img src="/assets/$10.png" alt="$10 Prize" class="top-logo" />
+    </div>
+
+    <h1 class="suburb-title">{{ suburb.upper() }} HOUSES</h1>
+    <p class="suburb-subtitle">Be the 1st to name the address of this {{ suburb }} house</p>
+
+    <img src="/{{ image_path }}" alt="Guess the house" class="house-img" />
+
+    <div class="input-area">
+      <input id="address-input" type="text" placeholder="Enter the full address..." />
+      <button id="submit-btn">Submit Guess</button>
+    </div>
+
+    <div id="result" class="hidden"></div>
+
+    <!-- Winner Modal -->
+    <div id="winner-modal" class="modal hidden">
+      <h2>🎉 You nailed it! 🎉</h2>
+      <p>Enter your details to claim your $10 Woolworths Gift Card:</p>
+      <label>Name: <input id="winner-name" type="text" placeholder="Your full name"></label>
+      <label>Mobile: <input id="winner-mobile" type="tel" placeholder="0412 345 678"></label>
+      <label><input id="winner-age" type="checkbox"> I am over 18 years old</label>
+      <button id="save-winner">Claim My Prize!</button>
+    </div>
+
+    <!-- Winners Grid -->
+    <h2>🏆 Houzee {{ suburb }} Winners</h2>
+    <div id="winner-grid" class="winner-grid"></div>
+  </div>
+
+  <script>
+    const correctAddress = {{ address|tojson }};
+    const imagePath = {{ image_path|tojson }};
+  </script>
+  <script src="/js/google_places.js"></script>
+  <script src="/js/game.js"></script>
+
+  <!-- Debug Google API Loading -->
+  <script>
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        if (window.google && window.google.maps) {
+          console.log("✅ Google Maps API loaded successfully!");
+          if (window.google.maps.places) {
+            console.log("✅ Google Places API loaded successfully!");
+          } else {
+            console.error("❌ Google Places API failed to load");
+          }
+        } else {
+          console.error("❌ Google Maps API failed to load - check your API key");
+        }
+      }, 2000);
+    });
+  </script>
+</body>
+</html>
