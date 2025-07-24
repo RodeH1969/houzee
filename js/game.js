@@ -93,9 +93,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const data = {
       name,
-      mobile,
-      address: correctAddress,
-      image: imagePath
+      email: mobileInput.value.trim(),
+      phone: mobileInput.value.trim(),
+      suburb: currentSuburb
     };
 
     console.log("🏆 Submitting winner data:", data);
