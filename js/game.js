@@ -107,7 +107,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }).then(res => res.json())
       .then(saved => {
         console.log("✅ Winner saved:", saved);
-        appendWinner(saved);
+        
+        // 🔧 FIXED: Extract the actual winner from the response
+        const actualWinner = saved.result?.winner || saved.winner || saved;
+        console.log("🔧 Extracted winner:", actualWinner);
+        appendWinner(actualWinner);
+        
         closeWinnerModal();
         
         // ✅ Show success message and refresh to new house
