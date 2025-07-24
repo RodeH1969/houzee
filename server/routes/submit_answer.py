@@ -59,95 +59,22 @@ They've won the $10 gift card!"""
         return False
 
 def save_winner(winner_data):
-    """Save winner data and return winner info with image path"""
+    """Save winner data - NO FILE OPERATIONS (fixed Render.com crash)"""
     
     print(f"🔍 SAVE_WINNER DEBUG: Received data: {winner_data}")
     
     try:
-        # Get suburb and generate image info
         suburb = winner_data.get('suburb', '')
-        print(f"🔍 SAVE_WINNER DEBUG: Suburb from data: {suburb}")
+        print(f"🔍 SAVE_WINNER DEBUG: Suburb: {suburb}")
         
-        # Suburb to prefix mapping
-        suburb_house_mappings = {
-            'Ashgrove': 'Ash',
-            'The Gap': 'Gap', 
-            'Red Hill': 'RedHill',
-            'Bardon': 'Bard',
-            'Paddington': 'Padd',
-            'Enoggera': 'Enog'
-        }
-        
-        # Get current house number and advance to next
-        current_house_file = 'data/current_houses.json'
-        
-        # Load current house numbers
-        if os.path.exists(current_house_file):
-            with open(current_house_file, 'r') as f:
-                current_houses = json.load(f)
-        else:
-            # Initialize with house 1 for all suburbs
-            current_houses = {suburb: 1 for suburb in suburb_house_mappings.keys()}
-            os.makedirs('data', exist_ok=True)
-        
-        # Get current house number for this suburb
-        current_house_num = current_houses.get(suburb, 1)
-        prefix = suburb_house_mappings.get(suburb, suburb[:4])
-        
-        # Generate image path for the house they just won
-        won_image_path = f"{suburb}_houses/{prefix}{current_house_num}.png"
-        
-        print(f"🔍 SAVE_WINNER DEBUG: Current house num: {current_house_num}")
-        print(f"🔍 SAVE_WINNER DEBUG: Generated image path: {won_image_path}")
-        
-        # Create winner entry for JSON file
-        winner_entry = {
-            'name': winner_data.get('name', ''),
-            'email': winner_data.get('email', ''),
-            'phone': winner_data.get('phone', ''),
-            'suburb': suburb,  # ✅ FIXED: Save suburb
-            'image': won_image_path,  # ✅ FIXED: Save image path
-            'address': f"House in {suburb}",  # ✅ FIXED: Add address
-            'timestamp': datetime.now().isoformat()
-        }
-        
-        print(f"🔍 SAVE_WINNER DEBUG: Winner entry: {winner_entry}")
-        
-        # Load existing winners
-        winners_file = 'data/winners.json'
-        if os.path.exists(winners_file):
-            with open(winners_file, 'r') as f:
-                winners = json.load(f)
-        else:
-            winners = []
-            os.makedirs('data', exist_ok=True)
-        
-        # Add new winner
-        winners.append(winner_entry)
-        
-        # Save updated winners
-        with open(winners_file, 'w') as f:
-            json.dump(winners, f, indent=2)
-        
-        print(f"✅ SAVE_WINNER SUCCESS: Winner added to {winners_file}")
-        
-        # Advance to next house
-        current_houses[suburb] = current_house_num + 1
-        
-        # Save updated house numbers
-        with open(current_house_file, 'w') as f:
-            json.dump(current_houses, f, indent=2)
-        
-        print(f"✅ SAVE_WINNER SUCCESS: Advanced {suburb} to house {current_house_num + 1}")
-        
-        # Send Telegram notification
+        # Send Telegram notification  
         telegram_sent = send_telegram_notification(winner_data, suburb)
+        
+        print(f"✅ SAVE_WINNER SUCCESS: Telegram sent: {telegram_sent}")
         
         return {
             'success': True,
-            'winner': winner_entry,  # ✅ Return winner with image and suburb
-            'telegram_sent': telegram_sent,
-            'next_house': current_house_num + 1
+            'telegram_sent': telegram_sent
         }
         
     except Exception as e:
