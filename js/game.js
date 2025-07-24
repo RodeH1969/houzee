@@ -179,11 +179,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function appendWinner(winner) {
+    // ✅ Ensure name always has "Winner: " prefix
+    let displayName = winner.name;
+    if (!displayName.startsWith('Winner: ')) {
+      displayName = `Winner: ${displayName}`;
+    }
+    
     const card = document.createElement('div');
     card.className = 'winner-card';
     card.innerHTML = `
       <img src="/${winner.image}" alt="Winner's house" class="winner-house-img" />
-      <p><strong>${winner.name}</strong></p>
+      <p><strong>${displayName}</strong></p>
       <p>${winner.address}</p>
     `;
     winnerGrid.appendChild(card);
@@ -191,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ✅ Add click-to-expand functionality
     const img = card.querySelector('.winner-house-img');
     img.addEventListener('click', () => {
-      showImageModal(winner.image, winner.name, winner.address);
+      showImageModal(winner.image, displayName, winner.address);
     });
     
     // ✅ Add hover effect for better UX

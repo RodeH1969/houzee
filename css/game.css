@@ -331,6 +331,8 @@
 .winner-card strong {
   color: #28a745;
   font-size: 16px;
+  display: block;
+  margin-bottom: 4px;
 }
 
 .balloon {
