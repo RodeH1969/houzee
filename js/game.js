@@ -63,6 +63,14 @@ document.addEventListener('DOMContentLoaded', () => {
       result.textContent = "❌ Not quite. Try again!";
       result.classList.remove('hidden');
       result.style.color = 'red';
+      
+      // ✅ AUTO-RESET: Clear error and input after 3 seconds
+      setTimeout(() => {
+        result.classList.add('hidden');
+        input.value = '';
+        input.focus(); // Put cursor back in input for next try
+        console.log("🔄 Auto-reset: Ready for next attempt");
+      }, 3000);
     }
   });
 
@@ -152,6 +160,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (suburbFolder === "TheGap") return "The Gap";
     if (suburbFolder === "RedHill") return "Red Hill";
     if (suburbFolder === "Bardon") return "Bardon";
+    if (suburbFolder === "Paddington") return "Paddington";
+    if (suburbFolder === "Enoggera") return "Enoggera";
     
     return null;
   }
@@ -172,11 +182,89 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = document.createElement('div');
     card.className = 'winner-card';
     card.innerHTML = `
-      <img src="/${winner.image}" alt="Winner's house" />
+      <img src="/${winner.image}" alt="Winner's house" class="winner-house-img" />
       <p><strong>${winner.name}</strong></p>
       <p>${winner.address}</p>
     `;
     winnerGrid.appendChild(card);
+    
+    // ✅ Add click-to-expand functionality
+    const img = card.querySelector('.winner-house-img');
+    img.addEventListener('click', () => {
+      showImageModal(winner.image, winner.name, winner.address);
+    });
+    
+    // ✅ Add hover effect for better UX
+    img.style.cursor = 'pointer';
+    img.title = 'Click to view full size';
+  }
+
+  // ✅ Fixed image modal functionality
+  function showImageModal(imageSrc, winnerName, address) {
+    // Create modal overlay
+    const modal = document.createElement('div');
+    modal.className = 'image-modal';
+    modal.innerHTML = `
+      <div class="image-modal-content">
+        <button class="image-modal-close">&times;</button>
+        <img src="/${imageSrc}" alt="Full size house" class="modal-image" />
+        <div class="image-modal-info">
+          <p><strong>${winnerName}</strong></p>
+          <p>${address}</p>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // ✅ Prevent body scroll when modal open
+    document.body.style.overflow = 'hidden';
+    
+    // ✅ Close modal function (clean up everything)
+    function closeModal() {
+      // Remove event listeners first
+      document.removeEventListener('keydown', handleEscape);
+      
+      // Restore body scroll
+      document.body.style.overflow = '';
+      
+      // Remove modal from DOM
+      if (document.body.contains(modal)) {
+        document.body.removeChild(modal);
+      }
+      
+      console.log("✅ Modal closed and cleaned up");
+    }
+    
+    // ✅ Close button functionality
+    const closeBtn = modal.querySelector('.image-modal-close');
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeModal();
+    });
+    
+    // ✅ Click outside to close
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+    
+    // ✅ Prevent clicks inside content from closing modal
+    const content = modal.querySelector('.image-modal-content');
+    content.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+    
+    // ✅ Escape key to close
+    function handleEscape(e) {
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    }
+    document.addEventListener('keydown', handleEscape);
+    
+    console.log("✅ Modal opened successfully");
   }
 
   function triggerConfetti() {

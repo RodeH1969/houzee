@@ -39,6 +39,10 @@ def save_winner(winner_data):
             suburb = "Red Hill"
         elif suburb_folder == "Bardon":
             suburb = "Bardon"
+        elif suburb_folder == "Paddington":
+            suburb = "Paddington"
+        elif suburb_folder == "Enoggera":
+            suburb = "Enoggera"
         
         print(f"DEBUG: Mapped to suburb: {suburb}")  # Debug log
     

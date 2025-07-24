@@ -5,7 +5,9 @@ SUBURB_PREFIXES = {
     "Ashgrove": "Ash",
     "The Gap": "TheGap", 
     "Red Hill": "RedHill",
-    "Bardon": "Bardon"
+    "Bardon": "Bardon",
+    "Paddington": "Padd",
+    "Enoggera": "Enog"
 }
 
 def get_current_house_data(suburb_name):
