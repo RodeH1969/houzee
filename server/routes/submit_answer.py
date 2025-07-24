@@ -12,136 +12,149 @@ def send_telegram_notification(winner_data, suburb):
     bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
     chat_id = os.environ.get('TELEGRAM_CHAT_ID')
     
-    print(f"🔍 TELEGRAM DEBUG: bot_token={'SET' if bot_token else 'MISSING'}")
-    print(f"🔍 TELEGRAM DEBUG: chat_id={'SET' if chat_id else 'MISSING'}")
+    print(f"🔍 TELEGRAM DEBUG: bot_token exists: {bool(bot_token)}")
+    print(f"🔍 TELEGRAM DEBUG: chat_id exists: {bool(chat_id)}")
     
     if not bot_token or not chat_id:
-        print("❌ TELEGRAM DEBUG: Missing environment variables")
+        print("❌ TELEGRAM ERROR: Missing bot token or chat ID")
         return False
-        
-    # Create suburb mappings for house prefixes
-    suburb_house_mappings = {
-        'Ashgrove': 'Ash',
-        'The Gap': 'Gap', 
-        'Red Hill': 'RedHill',
-        'Bardon': 'Bard',
-        'Paddington': 'Padd',
-        'Enoggera': 'Enog'
+    
+    # Format the message
+    message = f"""🏠 NEW HOUZEE WINNER!
+
+Name: {winner_data.get('name', 'Unknown')}
+Email: {winner_data.get('email', 'Unknown')}
+Phone: {winner_data.get('phone', 'Unknown')}
+Suburb: {suburb}
+House: (guessed correctly)
+Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+They've won the $10 gift card!"""
+    
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    payload = {
+        'chat_id': chat_id,
+        'text': message,
+        'parse_mode': 'HTML'
     }
     
-    house_prefix = suburb_house_mappings.get(suburb, suburb)
-    print(f"🔍 TELEGRAM DEBUG: house_prefix={house_prefix}")
-    
-    message = f"""🏆 NEW HOUZEE WINNER! 🏆
-
-👤 Name: {winner_data.get('name', 'Unknown')}
-📧 Email: {winner_data.get('email', 'Unknown')}  
-📱 Phone: {winner_data.get('phone', 'Unknown')}
-🏠 Suburb: {suburb}
-🏡 House: {house_prefix} (guessed correctly)
-⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-
-🎉 They've won the $10 gift card!"""
-    
-    print(f"🔍 TELEGRAM DEBUG: Message created, length: {len(message)}")
-    
     try:
-        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-        payload = {
-            "chat_id": chat_id,
-            "text": message
-        }
+        print(f"🔍 TELEGRAM DEBUG: Sending to URL: {url}")
+        print(f"🔍 TELEGRAM DEBUG: Payload: {payload}")
         
-        print(f"🔍 TELEGRAM DEBUG: About to send request...")
         response = requests.post(url, json=payload, timeout=10)
         print(f"🔍 TELEGRAM DEBUG: Response status: {response.status_code}")
         print(f"🔍 TELEGRAM DEBUG: Response text: {response.text}")
         
         if response.status_code == 200:
-            print(f"✅ Telegram notification sent for {winner_data.get('name')} - {suburb}")
+            print("✅ TELEGRAM SUCCESS: Message sent!")
             return True
         else:
-            print(f"❌ Telegram failed: {response.status_code} - {response.text}")
+            print(f"❌ TELEGRAM ERROR: Status {response.status_code}: {response.text}")
             return False
             
     except Exception as e:
-        print(f"❌ Telegram exception: {str(e)}")
-        print(f"🔍 Exception traceback: {traceback.format_exc()}")
+        print(f"❌ TELEGRAM EXCEPTION: {str(e)}")
+        print(f"❌ TELEGRAM TRACEBACK: {traceback.format_exc()}")
         return False
 
 def save_winner(winner_data):
-    """Save winner data and send notifications"""
+    """Save winner data and return winner info with image path"""
     
-    print(f"🔍 DEBUG: save_winner called with data: {winner_data}")
+    print(f"🔍 SAVE_WINNER DEBUG: Received data: {winner_data}")
     
     try:
-        # Get base directory path  
-        base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
-        winners_file = os.path.join(base_path, 'winners.json')
-        current_house_file = os.path.join(base_path, 'current_house.json')
+        # Get suburb and generate image info
+        suburb = winner_data.get('suburb', '')
+        print(f"🔍 SAVE_WINNER DEBUG: Suburb from data: {suburb}")
         
-        print(f"🔍 DEBUG: Winners file path: {winners_file}")
+        # Suburb to prefix mapping
+        suburb_house_mappings = {
+            'Ashgrove': 'Ash',
+            'The Gap': 'Gap', 
+            'Red Hill': 'RedHill',
+            'Bardon': 'Bard',
+            'Paddington': 'Padd',
+            'Enoggera': 'Enog'
+        }
         
-        # Load existing winners
-        if os.path.exists(winners_file):
-            with open(winners_file, 'r') as f:
-                winners = json.load(f)
-                print(f"🔍 DEBUG: Loaded {len(winners)} existing winners")
+        # Get current house number and advance to next
+        current_house_file = 'data/current_houses.json'
+        
+        # Load current house numbers
+        if os.path.exists(current_house_file):
+            with open(current_house_file, 'r') as f:
+                current_houses = json.load(f)
         else:
-            winners = []
-            print("🔍 DEBUG: Creating new winners list")
+            # Initialize with house 1 for all suburbs
+            current_houses = {suburb: 1 for suburb in suburb_house_mappings.keys()}
+            os.makedirs('data', exist_ok=True)
         
-        # Create winner entry
+        # Get current house number for this suburb
+        current_house_num = current_houses.get(suburb, 1)
+        prefix = suburb_house_mappings.get(suburb, suburb[:4])
+        
+        # Generate image path for the house they just won
+        won_image_path = f"{suburb}_houses/{prefix}{current_house_num}.png"
+        
+        print(f"🔍 SAVE_WINNER DEBUG: Current house num: {current_house_num}")
+        print(f"🔍 SAVE_WINNER DEBUG: Generated image path: {won_image_path}")
+        
+        # Create winner entry for JSON file
         winner_entry = {
             'name': winner_data.get('name', ''),
             'email': winner_data.get('email', ''),
             'phone': winner_data.get('phone', ''),
-            'suburb': winner_data.get('suburb', ''),
+            'suburb': suburb,  # ✅ FIXED: Save suburb
+            'image': won_image_path,  # ✅ FIXED: Save image path
+            'address': f"House in {suburb}",  # ✅ FIXED: Add address
             'timestamp': datetime.now().isoformat()
         }
         
-        winners.append(winner_entry)
-        print(f"🔍 DEBUG: Added winner: {winner_entry}")
+        print(f"🔍 SAVE_WINNER DEBUG: Winner entry: {winner_entry}")
         
-        # Save winners
+        # Load existing winners
+        winners_file = 'data/winners.json'
+        if os.path.exists(winners_file):
+            with open(winners_file, 'r') as f:
+                winners = json.load(f)
+        else:
+            winners = []
+            os.makedirs('data', exist_ok=True)
+        
+        # Add new winner
+        winners.append(winner_entry)
+        
+        # Save updated winners
         with open(winners_file, 'w') as f:
             json.dump(winners, f, indent=2)
-        print(f"🔍 DEBUG: Saved {len(winners)} total winners")
         
-        # Update current house tracking
-        if os.path.exists(current_house_file):
-            with open(current_house_file, 'r') as f:
-                current_house_data = json.load(f)
-        else:
-            current_house_data = {}
+        print(f"✅ SAVE_WINNER SUCCESS: Winner added to {winners_file}")
         
-        suburb = winner_data.get('suburb', '')
-        if suburb in current_house_data:
-            current_house_data[suburb] += 1
-        else:
-            current_house_data[suburb] = 2  # Next house after win
+        # Advance to next house
+        current_houses[suburb] = current_house_num + 1
         
+        # Save updated house numbers
         with open(current_house_file, 'w') as f:
-            json.dump(current_house_data, f, indent=2)
+            json.dump(current_houses, f, indent=2)
         
-        print(f"🔍 DEBUG: Updated {suburb} to house {current_house_data[suburb]}")
+        print(f"✅ SAVE_WINNER SUCCESS: Advanced {suburb} to house {current_house_num + 1}")
         
         # Send Telegram notification
-        print(f"🔍 DEBUG: Sending Telegram notification for {suburb}")
         telegram_sent = send_telegram_notification(winner_data, suburb)
         
         return {
             'success': True,
-            'winner': winner_entry,
-            'total_winners': len(winners),
-            'telegram_sent': telegram_sent
+            'winner': winner_entry,  # ✅ Return winner with image and suburb
+            'telegram_sent': telegram_sent,
+            'next_house': current_house_num + 1
         }
         
     except Exception as e:
-        error_msg = f"ERROR in save_winner: {str(e)}"
-        print(f"❌ {error_msg}")
-        print(f"🔍 Traceback: {traceback.format_exc()}")
+        print(f"❌ SAVE_WINNER ERROR: {str(e)}")
+        print(f"❌ SAVE_WINNER TRACEBACK: {traceback.format_exc()}")
         return {
             'success': False,
-            'error': str(e)
+            'error': str(e),
+            'telegram_sent': False
         }
