@@ -1,370 +1,331 @@
-// Global variables
-let currentSuburb = '';
-let correctAddress = '';
-let allWinners = [];
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('address-input');
+  const button = document.getElementById('submit-btn');
+  const result = document.getElementById('result');
+  const winnerModal = document.getElementById('winner-modal');
+  const nameInput = document.getElementById('winner-name');
+  const mobileInput = document.getElementById('winner-mobile');
+  const ageCheckbox = document.getElementById('winner-age');
+  const saveBtn = document.getElementById('save-winner');
+  const winnerGrid = document.getElementById('winner-grid');
 
-// Initialize the game when DOM loads
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎮 Game.js loaded successfully!');
-    
-    // Get suburb from URL path
-    const path = window.location.pathname;
-    const suburbMatch = path.match(/\/suburb\/(.+)/);
-    if (suburbMatch) {
-        currentSuburb = decodeURIComponent(suburbMatch[1]);
-        console.log('🏠 Current suburb:', currentSuburb);
-    }
+  // ✅ Get current suburb from the page title
+  const currentSuburb = document.title.split(' – ')[0]; // e.g., "Ashgrove – Houzee" → "Ashgrove"
+  console.log("🏠 Current suburb:", currentSuburb);
 
-    // Get the correct address from the page
-    const addressElement = document.getElementById('correct-address');
-    if (addressElement) {
-        correctAddress = addressElement.textContent.trim();
-        console.log('🏠 Correct address loaded:', correctAddress);
-    }
+  // ✅ Load existing winners on page load
+  loadExistingWinners();
 
-    // Load and display winners
-    loadWinners();
-    
-    // Set up guess form
-    setupGuessForm();
-});
-
-// Handle address guessing
-function setupGuessForm() {
-    const guessForm = document.getElementById('guess-form');
-    const guessInput = document.getElementById('address-guess');
-    
-    if (!guessForm || !guessInput) {
-        console.log('⚠️ Guess form elements not found');
-        return;
-    }
-
-    guessForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const userGuess = guessInput.value.trim();
-        console.log('🎯 Your guess:', userGuess);
-        console.log('🏠 Correct address:', correctAddress);
-        
-        if (checkAddressMatch(userGuess, correctAddress)) {
-            console.log('🎉 WINNER! Showing modal and confetti...');
-            showWinnerModal();
-            triggerConfetti();
-        } else {
-            console.log('❌ Wrong address, try again!');
-            showIncorrectMessage();
-        }
-    });
-}
-
-// Check if the guessed address matches the correct one
-function checkAddressMatch(guess, correct) {
-    // Normalize both addresses
-    const normalizedGuess = normalizeAddress(guess);
-    const normalizedCorrect = normalizeAddress(correct);
-    
-    console.log('🔄 Normalized guess:', normalizedGuess);
-    console.log('🔄 Normalized correct:', normalizedCorrect);
-    
-    // Check for exact match first
-    const exactMatch = normalizedGuess === normalizedCorrect;
-    console.log('📏 Exact match?', exactMatch);
-    
-    // Check for flexible match (contains key components)
-    const flexibleMatch = isFlexibleMatch(normalizedGuess, normalizedCorrect);
-    console.log('📏 Flexible match?', flexibleMatch);
-    
-    return exactMatch || flexibleMatch;
-}
-
-// Normalize address for comparison
-function normalizeAddress(address) {
+  // ✅ Flexible address matching function
+  function normalizeAddress(address) {
     return address
-        .toLowerCase()
-        .replace(/\s+/g, ' ')  // Multiple spaces to single space
-        .replace(/[.,]/g, '')  // Remove commas and periods
-        .replace(/\b(street|st|road|rd|avenue|ave|drive|dr|court|ct|place|pl)\b/g, '$1')  // Normalize street types
-        .replace(/\bqld\s+\d+/g, 'qld')  // Remove postcode
-        .replace(/\baustralia\b/g, '')  // Remove Australia
-        .trim();
-}
+      .toLowerCase()
+      .replace(/\s+/g, ' ')                    // Multiple spaces → single space
+      .replace(/\b(road|rd)\b/g, 'road')       // Normalize road/rd
+      .replace(/\b(street|st)\b/g, 'street')   // Normalize street/st
+      .replace(/\b(avenue|ave)\b/g, 'avenue')  // Normalize avenue/ave
+      .replace(/\s*,\s*/g, ', ')               // Normalize comma spacing
+      .replace(/\s*\d{4}\s*,?\s*/g, ', ')      // Remove postal codes like 4060
+      .replace(/,\s*australia\s*$/i, '')       // Remove ", Australia" from end
+      .replace(/,\s*qld\s*$/i, ', qld')        // Normalize QLD
+      .trim();
+  }
 
-// Flexible matching for slight variations
-function isFlexibleMatch(guess, correct) {
-    const guessWords = guess.split(' ').filter(word => word.length > 0);
-    const correctWords = correct.split(' ').filter(word => word.length > 0);
+  button.addEventListener('click', () => {
+    const guess = input.value.trim();
     
-    // Must have at least 3 words in common for large addresses
-    const commonWords = guessWords.filter(word => correctWords.includes(word));
-    return commonWords.length >= Math.min(3, correctWords.length - 1);
-}
-
-// Show winner modal
-function showWinnerModal() {
-    const modal = document.getElementById('winner-modal');
-    if (modal) {
-        modal.style.display = 'block';
-        
-        // Focus on name input
-        const nameInput = document.getElementById('winner-name');
-        if (nameInput) {
-            nameInput.focus();
-        }
-        
-        // Set up winner form submission
-        setupWinnerForm();
+    // ✅ DEBUG: Log both addresses to see the difference
+    console.log("🎯 Your guess:", guess);
+    console.log("🏠 Correct address:", correctAddress);
+    
+    // ✅ Try flexible matching
+    const normalizedGuess = normalizeAddress(guess);
+    const normalizedCorrect = normalizeAddress(correctAddress);
+    
+    console.log("🔄 Normalized guess:", normalizedGuess);
+    console.log("🔄 Normalized correct:", normalizedCorrect);
+    
+    const exactMatch = guess === correctAddress;
+    const flexibleMatch = normalizedGuess === normalizedCorrect;
+    
+    console.log("📏 Exact match?", exactMatch);
+    console.log("📏 Flexible match?", flexibleMatch);
+    
+    if (exactMatch || flexibleMatch) {
+      console.log("🎉 WINNER! Showing modal and confetti...");
+      showWinnerModal();
+      triggerConfetti();
+      
+      // Clear any previous error message
+      result.classList.add('hidden');
+    } else {
+      console.log("❌ No match. Showing error message...");
+      result.textContent = "❌ Not quite. Try again!";
+      result.classList.remove('hidden');
+      result.style.color = 'red';
+      
+      // ✅ AUTO-RESET: Clear error and input after 3 seconds
+      setTimeout(() => {
+        result.classList.add('hidden');
+        input.value = '';
+        input.focus(); // Put cursor back in input for next try
+        console.log("🔄 Auto-reset: Ready for next attempt");
+      }, 3000);
     }
-}
+  });
 
-// Set up winner form submission
-function setupWinnerForm() {
-    const winnerForm = document.getElementById('winner-form');
-    if (!winnerForm) return;
-    
-    // Remove existing listeners to prevent duplicates
-    const newForm = winnerForm.cloneNode(true);
-    winnerForm.parentNode.replaceChild(newForm, winnerForm);
-    
-    newForm.addEventListener('submit', function(e) {
-        e.preventDefault();
+  // ✅ Allow Enter key to submit
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      button.click();
+    }
+  });
+
+  saveBtn.addEventListener('click', () => {
+    const name = nameInput.value.trim();
+    const mobile = mobileInput.value.trim();
+    const over18 = ageCheckbox.checked;
+
+    if (!name || !mobile || !over18) {
+      alert("Please complete all fields and confirm you're over 18.");
+      return;
+    }
+
+    const data = {
+      name,
+      mobile,
+      address: correctAddress,
+      image: imagePath
+    };
+
+    console.log("🏆 Submitting winner data:", data);
+
+    fetch('/submit_winner', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }).then(res => res.json())
+      .then(saved => {
+        console.log("✅ Winner saved:", saved);
+        appendWinner(saved);
+        closeWinnerModal();
         
-        const formData = new FormData(newForm);
-        const winnerData = {
-            name: formData.get('name'),
-            email: formData.get('email'),
-            phone: formData.get('phone'),
-            suburb: currentSuburb
-        };
+        // ✅ Show success message and refresh to new house
+        result.textContent = "🎉 Congratulations! Prize details will be sent to your mobile.";
+        result.style.color = 'green';
+        result.classList.remove('hidden');
         
-        console.log('🏆 Submitting winner data:', winnerData);
+        // Refresh page after 3 seconds to show next house
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+      })
+      .catch(err => {
+        console.error("❌ Error saving winner:", err);
+        alert("Error saving winner. Please try again.");
+      });
+  });
+
+  function loadExistingWinners() {
+    fetch('/winners.json')
+      .then(res => res.json())
+      .then(winners => {
+        console.log("📋 All winners:", winners);
         
-        // Submit to backend
-        fetch('/submit_winner', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(winnerData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('✅ Winner saved:', data);
-            
-            try {
-                appendWinner(data);
-                closeWinnerModal();
-                advanceToNextHouse();
-            } catch (error) {
-                console.error('❌ Error saving winner:', error);
-                // Still close modal and advance even if display fails
-                closeWinnerModal();
-                advanceToNextHouse();
-            }
-        })
-        .catch(error => {
-            console.error('❌ Error submitting winner:', error);
-            // Still close modal - backend might have worked
-            closeWinnerModal();
-            advanceToNextHouse();
+        // ✅ FILTER: Only show winners for current suburb
+        const suburbWinners = winners.filter(winner => {
+          const suburbFromImage = getSuburbFromImagePath(winner.image);
+          console.log(`🔍 Winner ${winner.name}: image=${winner.image}, suburb=${suburbFromImage}, current=${currentSuburb}`);
+          return suburbFromImage === currentSuburb;
         });
-    });
-}
-
-// Load and display winners
-async function loadWinners() {
-    try {
-        const response = await fetch('/winners.json');
-        allWinners = await response.json();
-        console.log('📋 All winners:', allWinners);
         
-        // Display winners for current suburb
-        displayWinnersForSuburb();
-    } catch (error) {
-        console.error('❌ Error loading winners:', error);
-        allWinners = [];
-    }
-}
+        console.log(`🏆 ${currentSuburb} winners:`, suburbWinners);
+        
+        suburbWinners.forEach(winner => {
+          appendWinner(winner);
+        });
+      })
+      .catch(err => {
+        console.log('No winners file found or error loading winners:', err);
+      });
+  }
 
-// Display winners for current suburb
-function displayWinnersForSuburb() {
-    if (!allWinners) return;
+  // ✅ Helper function to extract suburb from image path
+  function getSuburbFromImagePath(imagePath) {
+    if (!imagePath || !imagePath.includes('_houses/')) return null;
     
-    // Log all winners for debugging
-    allWinners.forEach(winner => {
-        console.log(`🔍 Winner Winner: ${winner.name}: image=${winner.image || 'no-image'}, suburb=${winner.suburb}, current=${currentSuburb}`);
+    const suburbFolder = imagePath.split('_houses/')[0];
+    
+    if (suburbFolder === "Ashgrove") return "Ashgrove";
+    if (suburbFolder === "TheGap") return "The Gap";
+    if (suburbFolder === "RedHill") return "Red Hill";
+    if (suburbFolder === "Bardon") return "Bardon";
+    if (suburbFolder === "Paddington") return "Paddington";
+    if (suburbFolder === "Enoggera") return "Enoggera";
+    
+    return null;
+  }
+
+  function showWinnerModal() {
+    console.log("🎊 Displaying winner modal...");
+    winnerModal.classList.remove('hidden');
+  }
+
+  function closeWinnerModal() {
+    winnerModal.classList.add('hidden');
+    nameInput.value = '';
+    mobileInput.value = '';
+    ageCheckbox.checked = false;
+  }
+
+  function appendWinner(winner) {
+    // ✅ FIXED: Ensure name always has "Winner: " prefix (safe from undefined)
+    let displayName = winner.name || 'Anonymous';
+    if (!displayName.startsWith('Winner: ')) {
+      displayName = `Winner: ${displayName}`;
+    }
+    
+    const card = document.createElement('div');
+    card.className = 'winner-card';
+    card.innerHTML = `
+      <img src="/${winner.image}" alt="Winner's house" class="winner-house-img" />
+      <p><strong>${displayName}</strong></p>
+      <p>${winner.address}</p>
+    `;
+    winnerGrid.appendChild(card);
+    
+    // ✅ Add click-to-expand functionality
+    const img = card.querySelector('.winner-house-img');
+    img.addEventListener('click', () => {
+      showImageModal(winner.image, displayName, winner.address);
     });
     
-    // Filter winners for current suburb
-    const suburbWinners = allWinners.filter(winner => winner.suburb === currentSuburb);
-    console.log('🏆 ' + currentSuburb + ' winners:', suburbWinners);
-    
-    const winnersContainer = document.getElementById('winners-list');
-    if (!winnersContainer) return;
-    
-    winnersContainer.innerHTML = '';
-    
-    if (suburbWinners.length === 0) {
-        winnersContainer.innerHTML = '<p class="no-winners">🎯 No winners yet! Be the first to guess correctly!</p>';
-        return;
-    }
-    
-    suburbWinners.forEach(winner => {
-        const winnerElement = createWinnerElement(winner);
-        winnersContainer.appendChild(winnerElement);
-    });
-}
+    // ✅ Add hover effect for better UX
+    img.style.cursor = 'pointer';
+    img.title = 'Click to view full size';
+  }
 
-// Create winner element
-function createWinnerElement(winner) {
-    const winnerDiv = document.createElement('div');
-    winnerDiv.className = 'winner-item';
-    
-    // Safely get image path
-    const imagePath = getWinnerImagePath(winner);
-    
-    winnerDiv.innerHTML = `
-        <div class="winner-content">
-            <div class="winner-image">
-                <img src="${imagePath}" alt="Winner house" onerror="this.src='/assets/placeholder-house.png'">
-            </div>
-            <div class="winner-details">
-                <h4>🏆 ${escapeHtml(winner.name || 'Anonymous')}</h4>
-                <p>📧 ${escapeHtml(winner.email || 'No email')}</p>
-                <p>📱 ${escapeHtml(winner.phone || 'No phone')}</p>
-                <p class="winner-suburb">🏠 ${escapeHtml(winner.suburb || currentSuburb)}</p>
-                <p class="winner-time">⏰ ${formatTime(winner.timestamp)}</p>
-            </div>
+  // ✅ Fixed image modal functionality
+  function showImageModal(imageSrc, winnerName, address) {
+    // Create modal overlay
+    const modal = document.createElement('div');
+    modal.className = 'image-modal';
+    modal.innerHTML = `
+      <div class="image-modal-content">
+        <button class="image-modal-close">&times;</button>
+        <img src="/${imageSrc}" alt="Full size house" class="modal-image" />
+        <div class="image-modal-info">
+          <p><strong>${winnerName}</strong></p>
+          <p>${address}</p>
         </div>
+      </div>
     `;
     
-    return winnerDiv;
-}
-
-// Safely get winner image path (fixes the undefined.startsWith error)
-function getWinnerImagePath(winner) {
-    // Check if winner has image property
-    if (winner.image && typeof winner.image === 'string') {
-        // If image path starts with '/', it's already relative to root
-        if (winner.image.startsWith('/')) {
-            return winner.image;
-        }
-        // Otherwise prepend with '/'
-        return '/' + winner.image;
+    document.body.appendChild(modal);
+    
+    // ✅ Prevent body scroll when modal open
+    document.body.style.overflow = 'hidden';
+    
+    // ✅ Close modal function (clean up everything)
+    function closeModal() {
+      // Remove event listeners first
+      document.removeEventListener('keydown', handleEscape);
+      
+      // Restore body scroll
+      document.body.style.overflow = '';
+      
+      // Remove modal from DOM
+      if (document.body.contains(modal)) {
+        document.body.removeChild(modal);
+      }
+      
+      console.log("✅ Modal closed and cleaned up");
     }
     
-    // Fallback: generate image path based on suburb and assume first house
-    const suburbImageMap = {
-        'Ashgrove': 'Ashgrove_houses/Ash1.png',
-        'The Gap': 'TheGap_houses/Gap1.png', 
-        'Red Hill': 'RedHill_houses/RedHill1.png',
-        'Bardon': 'Bardon_houses/Bard1.png',
-        'Paddington': 'Paddington_houses/Padd1.png',
-        'Enoggera': 'Enoggera_houses/Enog1.png'
-    };
+    // ✅ Close button functionality
+    const closeBtn = modal.querySelector('.image-modal-close');
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeModal();
+    });
     
-    const defaultImage = suburbImageMap[winner.suburb || currentSuburb];
-    return defaultImage ? '/' + defaultImage : '/assets/placeholder-house.png';
-}
+    // ✅ Click outside to close
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+    
+    // ✅ Prevent clicks inside content from closing modal
+    const content = modal.querySelector('.image-modal-content');
+    content.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+    
+    // ✅ Escape key to close
+    function handleEscape(e) {
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    }
+    document.addEventListener('keydown', handleEscape);
+    
+    console.log("✅ Modal opened successfully");
+  }
 
-// Append new winner to display (with safe error handling)
-function appendWinner(data) {
-    if (!data || !data.result || !data.result.winner) {
-        console.log('⚠️ No winner data to append');
-        return;
+  function triggerConfetti() {
+    console.log("🎈 Triggering EPIC confetti celebration...");
+    
+    // ✅ MASSIVE BALLOONS (5x bigger!)
+    const balloonEmojis = ['🎈', '🎉', '🎊', '✨'];
+    for (let i = 0; i < 30; i++) {
+      const balloon = document.createElement('div');
+      balloon.textContent = balloonEmojis[Math.floor(Math.random() * balloonEmojis.length)];
+      balloon.className = 'mega-balloon';
+      balloon.style.left = `${Math.random() * 100}%`;
+      balloon.style.animationDelay = `${Math.random() * 2}s`;
+      document.body.appendChild(balloon);
+      setTimeout(() => balloon.remove(), 8000);
     }
     
-    const winner = data.result.winner;
-    console.log('➕ Appending winner:', winner);
+    // ✅ COLORFUL CONFETTI PIECES
+    const confettiColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3', '#54a0ff'];
+    const confettiShapes = ['●', '■', '▲', '♦', '★', '♥', '♠'];
     
-    // Add to allWinners array
-    allWinners.push(winner);
-    
-    // Update display
-    displayWinnersForSuburb();
-}
-
-// Close winner modal
-function closeWinnerModal() {
-    const modal = document.getElementById('winner-modal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
-
-// Advance to next house
-function advanceToNextHouse() {
-    console.log('🏠 Advancing to next house...');
-    
-    // Reload the page to show next house
-    setTimeout(() => {
-        window.location.reload();
-    }, 2000);
-}
-
-// Show incorrect message
-function showIncorrectMessage() {
-    const messageDiv = document.getElementById('message');
-    if (messageDiv) {
-        messageDiv.innerHTML = '<p class="incorrect">❌ Incorrect address. Try again!</p>';
-        messageDiv.style.display = 'block';
-        
-        // Hide message after 3 seconds
-        setTimeout(() => {
-            messageDiv.style.display = 'none';
-        }, 3000);
-    }
-}
-
-// Trigger confetti animation
-function triggerConfetti() {
-    console.log('🎈 Triggering EPIC confetti celebration...');
-    
-    // Multiple confetti bursts
-    for (let i = 0; i < 5; i++) {
-        setTimeout(() => {
-            confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { y: 0.6 }
-            });
-        }, i * 300);
+    for (let i = 0; i < 100; i++) {
+      const confetti = document.createElement('div');
+      confetti.textContent = confettiShapes[Math.floor(Math.random() * confettiShapes.length)];
+      confetti.className = 'confetti-piece';
+      confetti.style.left = `${Math.random() * 100}%`;
+      confetti.style.color = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+      confetti.style.animationDelay = `${Math.random() * 3}s`;
+      confetti.style.animationDuration = `${3 + Math.random() * 4}s`;
+      document.body.appendChild(confetti);
+      setTimeout(() => confetti.remove(), 7000);
     }
     
-    // Extra special burst
-    setTimeout(() => {
-        confetti({
-            particleCount: 200,
-            spread: 120,
-            origin: { y: 0.4 }
-        });
-    }, 1500);
-}
-
-// Utility function to escape HTML
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// Format timestamp
-function formatTime(timestamp) {
-    if (!timestamp) return 'Unknown time';
-    
-    try {
-        const date = new Date(timestamp);
-        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-    } catch (error) {
-        return 'Invalid time';
+    // ✅ GOLDEN STAR SHOWER
+    for (let i = 0; i < 25; i++) {
+      const star = document.createElement('div');
+      star.textContent = '⭐';
+      star.className = 'golden-star';
+      star.style.left = `${Math.random() * 100}%`;
+      star.style.animationDelay = `${Math.random() * 1}s`;
+      document.body.appendChild(star);
+      setTimeout(() => star.remove(), 6000);
     }
-}
-
-// Export for testing
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        normalizeAddress,
-        checkAddressMatch,
-        isFlexibleMatch
-    };
-}
+    
+    // ✅ SCREEN FLASH EFFECT
+    const flash = document.createElement('div');
+    flash.className = 'winner-flash';
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 1000);
+    
+    // ✅ CELEBRATION TEXT
+    const celebrationText = document.createElement('div');
+    celebrationText.textContent = '🎊 WINNER! 🎊';
+    celebrationText.className = 'celebration-text';
+    document.body.appendChild(celebrationText);
+    setTimeout(() => celebrationText.remove(), 4000);
+  }
+});
