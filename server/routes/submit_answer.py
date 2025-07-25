@@ -104,21 +104,21 @@ def update_github_file(repo, path, message, local_path, branch='main'):
 def save_winner(winner_data):
     """Save winner data and update house index"""
     
-    print(f"🔍 SAVE_WINNER DEBUG: Received data: {winner_data}")
-    
+    print("📌 Step 1: Start save_winner()")
+
     try:
         suburb = winner_data.get('suburb', '')
-        print(f"🔍 SAVE_WINNER DEBUG: Suburb: {suburb}")
+        print(f"📌 Step 2: Suburb = {suburb}")
         
         base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
         winners_file = os.path.join(base_path, 'winners.json')
         ch_file = os.path.join(base_path, 'current_house.json')
 
-        # Load and update winners.json
         winners = []
         if os.path.exists(winners_file):
             with open(winners_file, 'r') as f:
                 winners = json.load(f)
+        print("📌 Step 3: Loaded existing winners.json")
 
         new_winner = {
             "name": f"Winner: {winner_data.get('name', 'Unknown')}",
@@ -130,22 +130,21 @@ def save_winner(winner_data):
 
         with open(winners_file, 'w') as f:
             json.dump(winners, f, indent=2)
+        print("📌 Step 4: Saved updated winners.json")
 
-        # Load and update current_house.json
         current = {}
         if os.path.exists(ch_file):
             with open(ch_file, 'r') as f:
                 current = json.load(f)
-
         current_index = current.get(suburb, 1)
         current[suburb] = current_index + 1
 
         with open(ch_file, 'w') as f:
             json.dump(current, f, indent=2)
+        print("📌 Step 5: Saved updated current_house.json")
 
-        # Send Telegram notification  
         telegram_sent = send_telegram_notification(winner_data, suburb)
-        print(f"✅ SAVE_WINNER SUCCESS: Telegram sent: {telegram_sent}")
+        print(f"📌 Step 6: Telegram sent: {telegram_sent}")
 
         # GitHub sync
         repo = "RodeH1969/houzee"
