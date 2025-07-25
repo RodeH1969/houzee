@@ -131,25 +131,15 @@ def save_winner(winner_data):
         suburb = winner_data.get('suburb', '')
         print(f"🔍 SAVE_WINNER DEBUG: Suburb: {suburb}")
         
-        # Load winners.json from GitHub
-        github_token = os.environ.get('GITHUB_TOKEN')
-        headers = {
-            'Authorization': f'token {github_token}',
-            'Accept': 'application/vnd.github.v3+json'
-        }
-        
-        # Get current winners
+        # Load winners.json (YOUR EXACT ORIGINAL CODE)
+        base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
+        winners_file = os.path.join(base_path, 'winners.json')
         winners = []
-        try:
-            response = requests.get('https://api.github.com/repos/RodeH1969/houzee/contents/winners.json', headers=headers)
-            if response.status_code == 200:
-                content = base64.b64decode(response.json()['content']).decode()
-                winners = json.loads(content)
-                print(f"🔍 GITHUB DEBUG: Loaded {len(winners)} existing winners")
-        except:
-            print("🔍 GITHUB DEBUG: winners.json doesn't exist, starting fresh")
+        if os.path.exists(winners_file):
+            with open(winners_file, 'r') as f:
+                winners = json.load(f)
         
-        # Append new winner
+        # Append new winner (YOUR EXACT ORIGINAL CODE)
         new_winner = {
             "name": f"Winner: {winner_data.get('name', 'Unknown')}",
             "mobile": winner_data.get('phone', 'Unknown'),
@@ -157,39 +147,33 @@ def save_winner(winner_data):
             "image": winner_data.get('image', '')
         }
         winners.append(new_winner)
-        print(f"🔍 SAVE_WINNER DEBUG: Added winner, now {len(winners)} total")
         
-        # Get current house data
+        # 🔄 ONLY CHANGE: Replace file writing with GitHub API
+        update_github_file('winners.json', winners)
+        
+        # Update current_house.json (YOUR EXACT ORIGINAL CODE)
+        ch_file = os.path.join(base_path, 'current_house.json')
         current = {}
-        try:
-            response = requests.get('https://api.github.com/repos/RodeH1969/houzee/contents/current_house.json', headers=headers)
-            if response.status_code == 200:
-                content = base64.b64decode(response.json()['content']).decode()
-                current = json.loads(content)
-                print(f"🔍 GITHUB DEBUG: Loaded current house data: {current}")
-        except:
-            print("🔍 GITHUB DEBUG: current_house.json doesn't exist, starting fresh")
+        if os.path.exists(ch_file):
+            with open(ch_file, 'r') as f:
+                current = json.load(f)
         
         current_index = current.get(suburb, 1)
         current[suburb] = current_index + 1
-        print(f"🔍 SAVE_WINNER DEBUG: Advanced {suburb} from {current_index} to {current_index + 1}")
         
-        # Update files on GitHub
-        winners_updated = update_github_file('winners.json', winners)
-        current_updated = update_github_file('current_house.json', current)
+        # 🔄 ONLY CHANGE: Replace file writing with GitHub API
+        update_github_file('current_house.json', current)
         
-        # Send Telegram notification  
+        # Send Telegram notification (YOUR EXACT ORIGINAL CODE)
         telegram_sent = send_telegram_notification(winner_data, suburb)
         
         print(f"✅ SAVE_WINNER SUCCESS: Telegram sent: {telegram_sent}")
-        print(f"✅ SAVE_WINNER SUCCESS: Winners updated: {winners_updated}")
-        print(f"✅ SAVE_WINNER SUCCESS: Current house updated: {current_updated}")
         
+        # YOUR EXACT ORIGINAL RETURN
         return {
             'success': True,
             'telegram_sent': telegram_sent,
-            'next_house_index': current[suburb],
-            'files_updated': winners_updated and current_updated
+            'next_house_index': current[suburb]
         }
         
     except Exception as e:
