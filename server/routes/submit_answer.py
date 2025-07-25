@@ -91,7 +91,10 @@ def update_github_file(repo, path, message, local_path, branch='main'):
             print(f"✅ GITHUB SUCCESS: {path} updated.")
             return True
         else:
-            print(f"❌ GITHUB ERROR: {response.status_code} — {response.json()}")
+            print("❌ GITHUB ERROR:")
+            print(f"  URL: {api_url}")
+            print(f"  Status Code: {response.status_code}")
+            print(f"  Response: {response.text}")
             return False
 
     except Exception as e:
@@ -146,6 +149,12 @@ def save_winner(winner_data):
 
         # GitHub sync
         repo = "RodeH1969/houzee"
+
+        print(f"📍 Local path to winners.json: {winners_file}")
+        print(f"📍 Local path to current_house.json: {ch_file}")
+        print(f"📦 Uploading to GitHub: {repo}/contents/winners.json")
+        print(f"📦 Uploading to GitHub: {repo}/contents/current_house.json")
+
         gh1 = update_github_file(
             repo=repo,
             path="winners.json",
@@ -158,7 +167,8 @@ def save_winner(winner_data):
             message="🏠 House index updated",
             local_path=ch_file
         )
-        print(f"✅ GitHub sync: winners.json = {gh1}, current_house.json = {gh2}")
+
+        print(f"✅ GitHub sync result: winners.json = {gh1}, current_house.json = {gh2}")
 
         return {
             'success': True,
