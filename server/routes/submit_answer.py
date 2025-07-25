@@ -59,13 +59,47 @@ They've won the $10 gift card!"""
         return False
 
 def save_winner(winner_data):
-    """Save winner data - NO FILE OPERATIONS (fixed Render.com crash)"""
+    """Save winner data and update house index"""
     
     print(f"🔍 SAVE_WINNER DEBUG: Received data: {winner_data}")
     
     try:
         suburb = winner_data.get('suburb', '')
         print(f"🔍 SAVE_WINNER DEBUG: Suburb: {suburb}")
+        
+        # Load winners.json
+        base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
+        winners_file = os.path.join(base_path, 'winners.json')
+        winners = []
+        if os.path.exists(winners_file):
+            with open(winners_file, 'r') as f:
+                winners = json.load(f)
+        
+        # Append new winner
+        new_winner = {
+            "name": f"Winner: {winner_data.get('name', 'Unknown')}",
+            "mobile": winner_data.get('phone', 'Unknown'),
+            "address": winner_data.get('address', 'Unknown'),
+            "image": winner_data.get('image', '')
+        }
+        winners.append(new_winner)
+        
+        # Save updated winners.json
+        with open(winners_file, 'w') as f:
+            json.dump(winners, f, indent=2)
+        
+        # Update current_house.json
+        ch_file = os.path.join(base_path, 'current_house.json')
+        current = {}
+        if os.path.exists(ch_file):
+            with open(ch_file, 'r') as f:
+                current = json.load(f)
+        
+        current_index = current.get(suburb, 1)
+        current[suburb] = current_index + 1
+        
+        with open(ch_file, 'w') as f:
+            json.dump(current, f, indent=2)
         
         # Send Telegram notification  
         telegram_sent = send_telegram_notification(winner_data, suburb)
@@ -74,7 +108,8 @@ def save_winner(winner_data):
         
         return {
             'success': True,
-            'telegram_sent': telegram_sent
+            'telegram_sent': telegram_sent,
+            'next_house_index': current[suburb]
         }
         
     except Exception as e:

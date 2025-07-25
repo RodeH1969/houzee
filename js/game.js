@@ -92,10 +92,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const data = {
-      name,
-      email: mobileInput.value.trim(),
-      phone: mobileInput.value.trim(),
-      suburb: currentSuburb
+      name: name,
+      email: '', // Email not collected, sending empty string
+      phone: mobile,
+      suburb: currentSuburb,
+      address: correctAddress,
+      image: imagePath
     };
 
     console.log("🏆 Submitting winner data:", data);
@@ -108,22 +110,30 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(saved => {
         console.log("✅ Winner saved:", saved);
         
-        // 🔧 FIXED: Extract the actual winner from the response
-        const actualWinner = saved.result?.winner || saved.winner || saved;
-        console.log("🔧 Extracted winner:", actualWinner);
-        appendWinner(actualWinner);
-        
-        closeWinnerModal();
-        
-        // ✅ Show success message and refresh to new house
-        result.textContent = "🎉 Congratulations! Prize details will be sent to your mobile.";
-        result.style.color = 'green';
-        result.classList.remove('hidden');
-        
-        // Refresh page after 3 seconds to show next house
-        setTimeout(() => {
-          window.location.reload();
-        }, 3000);
+        if (saved.success) {
+          // Append winner to grid
+          const newWinner = {
+            name: `Winner: ${data.name}`,
+            address: data.address,
+            image: data.image
+          };
+          appendWinner(newWinner);
+          
+          closeWinnerModal();
+          
+          // Show success message
+          result.textContent = "🎉 Congratulations! Prize details will be sent to your mobile.";
+          result.style.color = 'green';
+          result.classList.remove('hidden');
+          
+          // Redirect to next house or no houses page
+          setTimeout(() => {
+            window.location.href = `/suburb/${encodeURIComponent(currentSuburb)}`;
+          }, 3000);
+        } else {
+          console.error("❌ Error saving winner:", saved.error);
+          alert("Error saving winner: " + saved.error);
+        }
       })
       .catch(err => {
         console.error("❌ Error saving winner:", err);
