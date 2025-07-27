@@ -114,6 +114,17 @@ def get_winners():
     
     return jsonify(winners)
 
+# ✅ ✅ ✅ NEW — Download winners.json
+@app.route('/download_winners')
+def download_winners():
+    base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+    winners_file = os.path.join(base_path, 'winners.json')
+    
+    if not os.path.exists(winners_file):
+        return "No winners file found.", 404
+
+    return send_from_directory(base_path, 'winners.json', as_attachment=True)
+
 @app.route('/<path:path>')
 def static_proxy(path):
     return send_from_directory(app.static_folder, path)
