@@ -75,12 +75,13 @@ def save_winner(winner_data):
             with open(winners_file, 'r') as f:
                 winners = json.load(f)
         
-        # Append new winner
+        # Append new winner (✅ ONLY CHANGE: added "suburb": suburb)
         new_winner = {
             "name": f"Winner: {winner_data.get('name', 'Unknown')}",
             "mobile": winner_data.get('phone', 'Unknown'),
             "address": winner_data.get('address', 'Unknown'),
-            "image": winner_data.get('image', '')
+            "image": winner_data.get('image', ''),
+            "suburb": suburb  # ✅ added safely
         }
         winners.append(new_winner)
         
