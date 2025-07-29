@@ -46,5 +46,17 @@
     "mobile": "0431231343",
     "address": "7 Jay Street, Red Hill QLD, Australia",
     "image": "RedHill_houses/RedHill2.png"
+  },
+  {
+    "name": "Winner: Harley",
+    "mobile": "0413500327",
+    "address": "35 Moore Street, Enoggera QLD, Australia",
+    "image": "Enoggera_houses/Enog2.png"
+  },
+  {
+    "name": "Winner: Linda",
+    "mobile": "0499321986",
+    "address": "80 Alderley Avenue, Alderley QLD, Australia",
+    "image": "Alderley_houses/Ald1.png"
   }
 ]
