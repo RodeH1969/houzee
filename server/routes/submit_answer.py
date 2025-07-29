@@ -64,7 +64,11 @@ def save_winner(winner_data):
     print(f"🔍 SAVE_WINNER DEBUG: Received data: {winner_data}")
     
     try:
-        suburb = winner_data.get('suburb', '')
+        image_path = winner_data.get('image', '')
+        
+        # ✅ FIX: safely derive suburb if not passed
+        suburb = winner_data.get('suburb') or image_path.split('/')[0].replace('_houses', '')
+        
         print(f"🔍 SAVE_WINNER DEBUG: Suburb: {suburb}")
         
         # Load winners.json
@@ -75,13 +79,13 @@ def save_winner(winner_data):
             with open(winners_file, 'r') as f:
                 winners = json.load(f)
         
-        # Append new winner (✅ ONLY CHANGE: added "suburb": suburb)
+        # Append new winner
         new_winner = {
             "name": f"Winner: {winner_data.get('name', 'Unknown')}",
             "mobile": winner_data.get('phone', 'Unknown'),
             "address": winner_data.get('address', 'Unknown'),
-            "image": winner_data.get('image', ''),
-            "suburb": suburb  # ✅ added safely
+            "image": image_path,
+            "suburb": suburb  # ✅ safe, accurate
         }
         winners.append(new_winner)
         
