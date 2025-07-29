@@ -19,7 +19,6 @@ def send_telegram_notification(winner_data, suburb):
         print("❌ TELEGRAM ERROR: Missing bot token or chat ID")
         return False
     
-    # Format the message
     message = f"""🏠 NEW HOUZEE WINNER!
 
 Name: {winner_data.get('name', 'Unknown')}
@@ -74,14 +73,26 @@ def save_winner(winner_data):
         if os.path.exists(winners_file):
             with open(winners_file, 'r') as f:
                 winners = json.load(f)
-        
+
+        # ✅ Load address from .txt file using image path
+        image_path = winner_data.get('image', '')  # e.g. Enoggera_houses/Enog1.png
+        image_filename = os.path.basename(image_path)  # Enog1.png
+        address_filename = image_filename.replace('.png', '_address.txt')  # Enog1_address.txt
+        suburb_folder = os.path.dirname(image_path)  # e.g. Enoggera_houses
+        address_file_path = os.path.join(base_path, suburb_folder, address_filename)
+
+        if os.path.exists(address_file_path):
+            with open(address_file_path, 'r', encoding='utf-8') as f:
+                address = f.read().strip()
+        else:
+            address = 'Address not found'
+
         # Append new winner
         new_winner = {
             "name": f"Winner: {winner_data.get('name', 'Unknown')}",
             "mobile": winner_data.get('phone', 'Unknown'),
-            "address": winner_data.get('address', 'Unknown'),
-            "image": winner_data.get('image', ''),
-            "suburb": suburb  # ✅ This is the key fix
+            "address": address,
+            "image": image_path
         }
         winners.append(new_winner)
         
