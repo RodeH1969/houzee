@@ -80,7 +80,8 @@ def save_winner(winner_data):
             "name": f"Winner: {winner_data.get('name', 'Unknown')}",
             "mobile": winner_data.get('phone', 'Unknown'),
             "address": winner_data.get('address', 'Unknown'),
-            "image": winner_data.get('image', '')
+            "image": winner_data.get('image', ''),
+            "suburb": suburb  # ✅ This is the key fix
         }
         winners.append(new_winner)
         
