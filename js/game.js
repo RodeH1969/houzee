@@ -92,10 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const data = {
-      name: name,
-      email: '', // Email not collected, sending empty string
-      phone: mobile,
-      suburb: currentSuburb,
+      name,
+      mobile,
       address: correctAddress,
       image: imagePath
     };
@@ -109,31 +107,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }).then(res => res.json())
       .then(saved => {
         console.log("✅ Winner saved:", saved);
+        appendWinner(saved);
+        closeWinnerModal();
         
-        if (saved.success) {
-          // Append winner to grid
-          const newWinner = {
-            name: Winner: ${data.name},
-            address: data.address,
-            image: data.image
-          };
-          appendWinner(newWinner);
-          
-          closeWinnerModal();
-          
-          // Show success message
-          result.textContent = "🎉 Congratulations! Prize details will be sent to your mobile.";
-          result.style.color = 'green';
-          result.classList.remove('hidden');
-          
-          // Redirect to next house or no houses page
-          setTimeout(() => {
-            window.location.href = /suburb/${encodeURIComponent(currentSuburb)};
-          }, 3000);
-        } else {
-          console.error("❌ Error saving winner:", saved.error);
-          alert("Error saving winner: " + saved.error);
-        }
+        // ✅ Show success message and refresh to new house
+        result.textContent = "🎉 Congratulations! Prize details will be sent to your mobile.";
+        result.style.color = 'green';
+        result.classList.remove('hidden');
+        
+        // Refresh page after 3 seconds to show next house
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
       })
       .catch(err => {
         console.error("❌ Error saving winner:", err);
@@ -150,11 +135,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // ✅ FILTER: Only show winners for current suburb
         const suburbWinners = winners.filter(winner => {
           const suburbFromImage = getSuburbFromImagePath(winner.image);
-          console.log(🔍 Winner ${winner.name}: image=${winner.image}, suburb=${suburbFromImage}, current=${currentSuburb});
+          console.log(`🔍 Winner ${winner.name}: image=${winner.image}, suburb=${suburbFromImage}, current=${currentSuburb}`);
           return suburbFromImage === currentSuburb;
         });
         
-        console.log(🏆 ${currentSuburb} winners:, suburbWinners);
+        console.log(`🏆 ${currentSuburb} winners:`, suburbWinners);
         
         suburbWinners.forEach(winner => {
           appendWinner(winner);
@@ -194,19 +179,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function appendWinner(winner) {
-    // ✅ FIXED: Ensure name always has "Winner: " prefix (safe from undefined)
-    let displayName = winner.name || 'Anonymous';
+    // ✅ Ensure name always has "Winner: " prefix
+    let displayName = winner.name;
     if (!displayName.startsWith('Winner: ')) {
-      displayName = Winner: ${displayName};
+      displayName = `Winner: ${displayName}`;
     }
     
     const card = document.createElement('div');
     card.className = 'winner-card';
-    card.innerHTML = 
+    card.innerHTML = `
       <img src="/${winner.image}" alt="Winner's house" class="winner-house-img" />
       <p><strong>${displayName}</strong></p>
       <p>${winner.address}</p>
-    ;
+    `;
     winnerGrid.appendChild(card);
     
     // ✅ Add click-to-expand functionality
@@ -225,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Create modal overlay
     const modal = document.createElement('div');
     modal.className = 'image-modal';
-    modal.innerHTML = 
+    modal.innerHTML = `
       <div class="image-modal-content">
         <button class="image-modal-close">&times;</button>
         <img src="/${imageSrc}" alt="Full size house" class="modal-image" />
@@ -234,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <p>${address}</p>
         </div>
       </div>
-    ;
+    `;
     
     document.body.appendChild(modal);
     
@@ -297,8 +282,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const balloon = document.createElement('div');
       balloon.textContent = balloonEmojis[Math.floor(Math.random() * balloonEmojis.length)];
       balloon.className = 'mega-balloon';
-      balloon.style.left = ${Math.random() * 100}%;
-      balloon.style.animationDelay = ${Math.random() * 2}s;
+      balloon.style.left = `${Math.random() * 100}%`;
+      balloon.style.animationDelay = `${Math.random() * 2}s`;
       document.body.appendChild(balloon);
       setTimeout(() => balloon.remove(), 8000);
     }
@@ -311,10 +296,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const confetti = document.createElement('div');
       confetti.textContent = confettiShapes[Math.floor(Math.random() * confettiShapes.length)];
       confetti.className = 'confetti-piece';
-      confetti.style.left = ${Math.random() * 100}%;
+      confetti.style.left = `${Math.random() * 100}%`;
       confetti.style.color = confettiColors[Math.floor(Math.random() * confettiColors.length)];
-      confetti.style.animationDelay = ${Math.random() * 3}s;
-      confetti.style.animationDuration = ${3 + Math.random() * 4}s;
+      confetti.style.animationDelay = `${Math.random() * 3}s`;
+      confetti.style.animationDuration = `${3 + Math.random() * 4}s`;
       document.body.appendChild(confetti);
       setTimeout(() => confetti.remove(), 7000);
     }
@@ -324,8 +309,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const star = document.createElement('div');
       star.textContent = '⭐';
       star.className = 'golden-star';
-      star.style.left = ${Math.random() * 100}%;
-      star.style.animationDelay = ${Math.random() * 1}s;
+      star.style.left = `${Math.random() * 100}%`;
+      star.style.animationDelay = `${Math.random() * 1}s`;
       document.body.appendChild(star);
       setTimeout(() => star.remove(), 6000);
     }
