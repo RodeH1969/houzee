@@ -163,6 +163,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (suburbFolder === "Paddington") return "Paddington";
     if (suburbFolder === "Enoggera") return "Enoggera";
     if (suburbFolder === "Alderley") return "Alderley";
+    if (suburbFolder === "Corinda") return "Corinda";
+    if (suburbFolder === "Oxley") return "Oxley";
+    if (suburbFolder === "Sherwood") return "Sherwood";
+    if (suburbFolder === "Jindalee") return "Jindalee";
     
     return null;
   }
