@@ -37,7 +37,8 @@ def get_current_house_data(suburb_name):
 
     prefix = SUBURB_PREFIXES.get(suburb_name)
     if not prefix:
-        return None
+        # Fallback: use first part of folder name as prefix
+        prefix = clean_name[:4]
 
     image_file = f"{prefix}{current_index}.png"
     address_file = f"{prefix}{current_index}_address.txt"
