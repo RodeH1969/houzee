@@ -13,7 +13,7 @@ SUBURB_PREFIXES = {
     "Corinda": "Cor",
     "Oxley": "Oxley",
     "Jindalee": "Jind",
-    "Chapel Hill": "Chap",
+    "Chapel Hill": "ChapelHill",
     "Kenmore": "Ken"
 }
 
