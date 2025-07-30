@@ -12,7 +12,9 @@ SUBURB_PREFIXES = {
     "Sherwood": "Sher",
     "Corinda": "Cor",
     "Oxley": "Oxley",
-    "Jindalee": "Jind"
+    "Jindalee": "Jind",
+    "Chapel Hill": "Chap",
+    "Kenmore": "Ken"
 }
 
 def get_current_house_data(suburb_name):
