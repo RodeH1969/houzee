@@ -71,10 +71,22 @@
     "address": "14 Effie Street, Bardon QLD, Australia",
     "image": "Bardon_houses/Bardon2.png"
   },
-{
+  {
     "name": "Winner: Luke",
     "mobile": "Unknown",
     "address": "9 Fifth Avenue, St Lucia QLD, Australia",
     "image": "StLucia_houses/StLucia1.png"
+  },
+  {
+    "name": "Winner: Sarah",
+    "mobile": "0423544790",
+    "address": "43 Curragundi Road, Jindalee QLD, Australia",
+    "image": "Jindalee_houses/Jind1.png"
+  },
+  {
+    "name": "Winner: Claire",
+    "mobile": "0431231343",
+    "address": "15 Explorer Street, Toowong QLD, Australia",
+    "image": "Toowong_houses/Toowong1.png"
   }
 ]
