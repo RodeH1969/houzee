@@ -3,7 +3,6 @@ import json
 import requests
 import traceback
 from datetime import datetime
-import subprocess  # ✅ Added for git commit/push
 
 def send_telegram_notification(winner_data, suburb):
     """Send Telegram notification of new winner"""
@@ -113,16 +112,14 @@ def save_winner(winner_data):
         
         with open(ch_file, 'w') as f:
             json.dump(current, f, indent=2)
-
-        # ✅ ONE CHANGE ONLY: Commit and push updated current_house.json
-        try:
-            subprocess.run(["git", "add", "current_house.json"], cwd=base_path, check=True)
-            subprocess.run(["git", "commit", "-m", "Update current_house.json"], cwd=base_path, check=True)
-            subprocess.run(["git", "push"], cwd=base_path, check=True)
-            print("✅ Git commit and push successful")
-        except subprocess.CalledProcessError as e:
-            print(f"❌ Git error: {e}")
-
+        
+        # *** NEW: Set git config, add, commit, and push current_house.json ***
+        os.system('git config user.name "Houzee Bot"')
+        os.system('git config user.email "bot@houzee.app"')
+        os.system(f'git add "{ch_file}"')
+        os.system('git commit -m "Auto update current_house.json after winner submission"')
+        os.system('git push origin main')
+        
         # Send Telegram notification  
         telegram_sent = send_telegram_notification(winner_data, suburb)
         
