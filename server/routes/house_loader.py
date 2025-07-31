@@ -16,7 +16,7 @@ SUBURB_PREFIXES = {
     "Chapel Hill": "ChapelHill",
     "Kenmore": "Ken",
     "Brookfield": "Brookfield",
-    "Toowong": "Toow"
+    "Toowong": "Toowong"
 }
 
 def get_current_house_data(suburb_name):
