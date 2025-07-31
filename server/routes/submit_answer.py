@@ -113,12 +113,20 @@ def save_winner(winner_data):
         with open(ch_file, 'w') as f:
             json.dump(current, f, indent=2)
         
-        # *** NEW: Set git config, add, commit, and push current_house.json ***
-        os.system('git config user.name "Houzee Bot"')
-        os.system('git config user.email "bot@houzee.app"')
-        os.system(f'git add "{ch_file}"')
-        os.system('git commit -m "Auto update current_house.json after winner submission"')
-        os.system('git push origin main')
+        # ✅ Improved Git logic with logging
+        git_cmds = [
+            'git config user.name "Houzee Bot"',
+            'git config user.email "bot@houzee.app"',
+            f'git add "{ch_file}"',
+            'git commit -m "Auto update current_house.json after winner submission"',
+            'git push origin main'
+        ]
+        
+        for cmd in git_cmds:
+            print(f"🚀 Executing: {cmd}")
+            result = os.system(cmd)
+            if result != 0:
+                print(f"❌ Git command failed: {cmd}")
         
         # Send Telegram notification  
         telegram_sent = send_telegram_notification(winner_data, suburb)
