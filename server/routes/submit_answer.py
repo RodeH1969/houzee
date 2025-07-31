@@ -23,7 +23,7 @@ def send_telegram_notification(winner_data, suburb):
 
 Name: {winner_data.get('name', 'Unknown')}
 Email: {winner_data.get('email', 'Unknown')}
-Phone: {winner_data.get('phone', 'Unknown')}
+Phone: {winner_data.get('mobile', 'Unknown')}
 Suburb: {suburb}
 House: (guessed correctly)
 Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
@@ -90,7 +90,7 @@ def save_winner(winner_data):
         # Append new winner
         new_winner = {
             "name": f"Winner: {winner_data.get('name', 'Unknown')}",
-            "mobile": winner_data.get('phone', 'Unknown'),
+            "mobile": winner_data.get('mobile', 'Unknown'),
             "address": address,
             "image": image_path
         }
