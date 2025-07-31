@@ -189,8 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function appendWinner(winner) {
-    // ✅ Ensure name always has "Winner: " prefix
-    let displayName = winner.name;
+    let displayName = winner.name || '';  // fallback to empty string if undefined
     if (!displayName.startsWith('Winner: ')) {
       displayName = `Winner: ${displayName}`;
     }
@@ -204,13 +203,11 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     winnerGrid.appendChild(card);
     
-    // ✅ Add click-to-expand functionality
     const img = card.querySelector('.winner-house-img');
     img.addEventListener('click', () => {
       showImageModal(winner.image, displayName, winner.address);
     });
     
-    // ✅ Add hover effect for better UX
     img.style.cursor = 'pointer';
     img.title = 'Click to view full size';
   }
