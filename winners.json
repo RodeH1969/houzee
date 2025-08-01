@@ -94,5 +94,23 @@
     "mobile": "0459754708",
     "address": "17 Merewether Street, Sherwood QLD, Australia",
     "image": "Sherwood_houses/Sher1.png"
+  },
+  {
+    "name": "Winner: Liv",
+    "mobile": "0423544790",
+    "address": "7 Gray Avenue, Corinda QLD, Australia",
+    "image": "Corinda_houses/Cor1.png"
+  },
+  {
+    "name": "Winner: Alysse",
+    "mobile": "0457262197",
+    "address": "25 Lansbury Parade, Ashgrove QLD, Australia",
+    "image": "Ashgrove_houses/Ash2.png"
+  },
+  {
+    "name": "Winner: Rajalakshmi Raja",
+    "mobile": "0434370169",
+    "address": "53 Nelson Street, Corinda QLD, Australia",
+    "image": "Corinda_houses/Cor2.png"
   }
 ]
