@@ -108,7 +108,7 @@ def get_winners():
     
     if not os.path.exists(winners_file):
         return jsonify([])
-    
+
     with open(winners_file, 'r') as f:
         winners = json.load(f)
     
@@ -124,6 +124,13 @@ def download_winners():
         return "No winners file found.", 404
 
     return send_from_directory(base_path, 'winners.json', as_attachment=True)
+
+# ✅ ✅ ✅ NEW — Return current house data without advancing
+@app.route('/next_house/<suburb>')
+def next_house(suburb):
+    """Get next house data without incrementing"""
+    house_data = get_current_house_data(suburb)
+    return jsonify(house_data)
 
 @app.route('/<path:path>')
 def static_proxy(path):

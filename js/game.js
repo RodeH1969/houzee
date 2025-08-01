@@ -9,72 +9,56 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveBtn = document.getElementById('save-winner');
   const winnerGrid = document.getElementById('winner-grid');
 
-  // ✅ Get current suburb from the page title
-  const currentSuburb = document.title.split(' – ')[0]; // e.g., "Ashgrove – Houzee" → "Ashgrove"
+  const currentSuburb = document.title.split(' – ')[0];
   console.log("🏠 Current suburb:", currentSuburb);
 
-  // ✅ Load existing winners on page load
   loadExistingWinners();
 
-  // ✅ Flexible address matching function
   function normalizeAddress(address) {
     return address
       .toLowerCase()
-      .replace(/\s+/g, ' ')                    // Multiple spaces → single space
-      .replace(/\b(road|rd)\b/g, 'road')       // Normalize road/rd
-      .replace(/\b(street|st)\b/g, 'street')   // Normalize street/st
-      .replace(/\b(avenue|ave)\b/g, 'avenue')  // Normalize avenue/ave
-      .replace(/\s*,\s*/g, ', ')               // Normalize comma spacing
-      .replace(/\s*\d{4}\s*,?\s*/g, ', ')      // Remove postal codes like 4060
-      .replace(/,\s*australia\s*$/i, '')       // Remove ", Australia" from end
-      .replace(/,\s*qld\s*$/i, ', qld')        // Normalize QLD
+      .replace(/\s+/g, ' ')
+      .replace(/\b(road|rd)\b/g, 'road')
+      .replace(/\b(street|st)\b/g, 'street')
+      .replace(/\b(avenue|ave)\b/g, 'avenue')
+      .replace(/\s*,\s*/g, ', ')
+      .replace(/\s*\d{4}\s*,?\s*/g, ', ')
+      .replace(/,\s*australia\s*$/i, '')
+      .replace(/,\s*qld\s*$/i, ', qld')
       .trim();
   }
 
   button.addEventListener('click', () => {
     const guess = input.value.trim();
-    
-    // ✅ DEBUG: Log both addresses to see the difference
     console.log("🎯 Your guess:", guess);
     console.log("🏠 Correct address:", correctAddress);
-    
-    // ✅ Try flexible matching
     const normalizedGuess = normalizeAddress(guess);
     const normalizedCorrect = normalizeAddress(correctAddress);
-    
     console.log("🔄 Normalized guess:", normalizedGuess);
     console.log("🔄 Normalized correct:", normalizedCorrect);
-    
     const exactMatch = guess === correctAddress;
     const flexibleMatch = normalizedGuess === normalizedCorrect;
-    
     console.log("📏 Exact match?", exactMatch);
     console.log("📏 Flexible match?", flexibleMatch);
-    
     if (exactMatch || flexibleMatch) {
       console.log("🎉 WINNER! Showing modal and confetti...");
       showWinnerModal();
       triggerConfetti();
-      
-      // Clear any previous error message
       result.classList.add('hidden');
     } else {
       console.log("❌ No match. Showing error message...");
       result.textContent = "❌ Not quite. Try again!";
       result.classList.remove('hidden');
       result.style.color = 'red';
-      
-      // ✅ AUTO-RESET: Clear error and input after 3 seconds
       setTimeout(() => {
         result.classList.add('hidden');
         input.value = '';
-        input.focus(); // Put cursor back in input for next try
+        input.focus();
         console.log("🔄 Auto-reset: Ready for next attempt");
       }, 3000);
     }
   });
 
-  // ✅ Allow Enter key to submit
   input.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
       button.click();
@@ -95,7 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
       name,
       mobile,
       address: correctAddress,
-      image: imagePath
+      image: imagePath,
+      suburb: currentSuburb
     };
 
     console.log("🏆 Submitting winner data:", data);
@@ -104,21 +89,24 @@ document.addEventListener('DOMContentLoaded', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
-    }).then(res => res.json())
+    })
+      .then(res => res.json())
       .then(saved => {
-        console.log("✅ Winner saved:", saved);
-        appendWinner(saved);
-        closeWinnerModal();
-        
-        // ✅ Show success message and refresh to new house
-        result.textContent = "🎉 Congratulations! Prize details will be sent to your mobile.";
-        result.style.color = 'green';
-        result.classList.remove('hidden');
-        
-        // Refresh page after 3 seconds to show next house
-        setTimeout(() => {
-          window.location.reload();
-        }, 3000);
+        if (saved.success) {
+          appendWinner(saved);
+          closeWinnerModal();
+
+          // ✅ Fetch and display next house WITHOUT reload
+          fetch(`/next_house/${currentSuburb}`)
+            .then(res => res.json())
+            .then(nextHouse => {
+              document.querySelector('.house-img').src = `/${nextHouse.image_path}`;
+              correctAddress = nextHouse.answer;
+              result.textContent = "🎉 Success! New house loaded.";
+              result.style.color = 'green';
+              result.classList.remove('hidden');
+            });
+        }
       })
       .catch(err => {
         console.error("❌ Error saving winner:", err);
@@ -130,17 +118,10 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch('/winners.json')
       .then(res => res.json())
       .then(winners => {
-        console.log("📋 All winners:", winners);
-        
-        // ✅ FILTER: Only show winners for current suburb
         const suburbWinners = winners.filter(winner => {
           const suburbFromImage = getSuburbFromImagePath(winner.image);
-          console.log(`🔍 Winner ${winner.name}: image=${winner.image}, suburb=${suburbFromImage}, current=${currentSuburb}`);
           return suburbFromImage === currentSuburb;
         });
-        
-        console.log(`🏆 ${currentSuburb} winners:`, suburbWinners);
-        
         suburbWinners.forEach(winner => {
           appendWinner(winner);
         });
@@ -150,12 +131,10 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  // ✅ Helper function to extract suburb from image path
   function getSuburbFromImagePath(imagePath) {
     if (!imagePath || !imagePath.includes('_houses/')) return null;
-    
     const suburbFolder = imagePath.split('_houses/')[0];
-    
+
     if (suburbFolder === "Ashgrove") return "Ashgrove";
     if (suburbFolder === "TheGap") return "The Gap";
     if (suburbFolder === "RedHill") return "Red Hill";
@@ -171,13 +150,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (suburbFolder === "Kenmore") return "Kenmore";
     if (suburbFolder === "Brookfield") return "Brookfield";
     if (suburbFolder === "Toowong") return "Toowong";
-    if (suburbFolder === "StLucia") return "StLucia"
-    
+    if (suburbFolder === "StLucia") return "StLucia";
+
     return null;
   }
 
   function showWinnerModal() {
-    console.log("🎊 Displaying winner modal...");
     winnerModal.classList.remove('hidden');
   }
 
@@ -189,11 +167,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function appendWinner(winner) {
-    let displayName = winner.name || '';  // fallback to empty string if undefined
+    let displayName = winner.name || '';
     if (!displayName.startsWith('Winner: ')) {
       displayName = `Winner: ${displayName}`;
     }
-    
+
     const card = document.createElement('div');
     card.className = 'winner-card';
     card.innerHTML = `
@@ -202,19 +180,17 @@ document.addEventListener('DOMContentLoaded', () => {
       <p>${winner.address}</p>
     `;
     winnerGrid.appendChild(card);
-    
+
     const img = card.querySelector('.winner-house-img');
     img.addEventListener('click', () => {
       showImageModal(winner.image, displayName, winner.address);
     });
-    
+
     img.style.cursor = 'pointer';
     img.title = 'Click to view full size';
   }
 
-  // ✅ Fixed image modal functionality
   function showImageModal(imageSrc, winnerName, address) {
-    // Create modal overlay
     const modal = document.createElement('div');
     modal.className = 'image-modal';
     modal.innerHTML = `
@@ -227,63 +203,45 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
     `;
-    
+
     document.body.appendChild(modal);
-    
-    // ✅ Prevent body scroll when modal open
     document.body.style.overflow = 'hidden';
-    
-    // ✅ Close modal function (clean up everything)
+
     function closeModal() {
-      // Remove event listeners first
       document.removeEventListener('keydown', handleEscape);
-      
-      // Restore body scroll
       document.body.style.overflow = '';
-      
-      // Remove modal from DOM
       if (document.body.contains(modal)) {
         document.body.removeChild(modal);
       }
-      
-      console.log("✅ Modal closed and cleaned up");
     }
-    
-    // ✅ Close button functionality
+
     const closeBtn = modal.querySelector('.image-modal-close');
     closeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       closeModal();
     });
-    
-    // ✅ Click outside to close
+
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
         closeModal();
       }
     });
-    
-    // ✅ Prevent clicks inside content from closing modal
+
     const content = modal.querySelector('.image-modal-content');
     content.addEventListener('click', (e) => {
       e.stopPropagation();
     });
-    
-    // ✅ Escape key to close
+
     function handleEscape(e) {
       if (e.key === 'Escape') {
         closeModal();
       }
     }
+
     document.addEventListener('keydown', handleEscape);
-    
-    console.log("✅ Modal opened successfully");
   }
 
   function triggerConfetti() {
-    console.log("🎈 Triggering EPIC confetti celebration...");
-    
-    // ✅ MASSIVE BALLOONS (5x bigger!)
     const balloonEmojis = ['🎈', '🎉', '🎊', '✨'];
     for (let i = 0; i < 30; i++) {
       const balloon = document.createElement('div');
@@ -294,11 +252,10 @@ document.addEventListener('DOMContentLoaded', () => {
       document.body.appendChild(balloon);
       setTimeout(() => balloon.remove(), 8000);
     }
-    
-    // ✅ COLORFUL CONFETTI PIECES
+
     const confettiColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3', '#54a0ff'];
     const confettiShapes = ['●', '■', '▲', '♦', '★', '♥', '♠'];
-    
+
     for (let i = 0; i < 100; i++) {
       const confetti = document.createElement('div');
       confetti.textContent = confettiShapes[Math.floor(Math.random() * confettiShapes.length)];
@@ -310,8 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.body.appendChild(confetti);
       setTimeout(() => confetti.remove(), 7000);
     }
-    
-    // ✅ GOLDEN STAR SHOWER
+
     for (let i = 0; i < 25; i++) {
       const star = document.createElement('div');
       star.textContent = '⭐';
@@ -321,14 +277,12 @@ document.addEventListener('DOMContentLoaded', () => {
       document.body.appendChild(star);
       setTimeout(() => star.remove(), 6000);
     }
-    
-    // ✅ SCREEN FLASH EFFECT
+
     const flash = document.createElement('div');
     flash.className = 'winner-flash';
     document.body.appendChild(flash);
     setTimeout(() => flash.remove(), 1000);
-    
-    // ✅ CELEBRATION TEXT
+
     const celebrationText = document.createElement('div');
     celebrationText.textContent = '🎊 WINNER! 🎊';
     celebrationText.className = 'celebration-text';
